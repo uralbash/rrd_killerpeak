@@ -1,0 +1,15 @@
+Kill peak from rrd file.
+<br>
+Use:
+<br>
+run killerpeak.py for file
+<br>
+./killerpeak.py data/rrdfile/7890.rrd
+peak detect in data/rrdfile/7890.rrd
+peak detect in data/rrdfile/7890.rrd
+peak detect in data/rrdfile/7890.rrd
+peak detect in data/rrdfile/7890.rrd
+<br>
+run killpeak.sh for folder
+<br>
+./killpeak.sh data/rrdfile
