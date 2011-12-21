@@ -1,11 +1,30 @@
 Kill peak from rrd file.
 
 Use:
+file.rrd file structure
+<ds><name> traffic_in </name></ds>
+<ds><name> traffic_out </name></ds>
+<ds><name> unicast_in </name></ds>
+<ds><name> nonunicast_in </name></ds>
+<ds><name> discards_in </name></ds>
+<ds><name> errors_in </name></ds>
+
+<!-- 2011-12-20 09:00:00 YEKT / 1324350000 -->
+<row>
+    <v>NaN</v>
+    <v>NaN</v>
+    <v>NaN</v>
+    <v>1.2054174306e+00</v>
+    <v>4.9052396878e+14</v>
+    <v>0.0000000000e+05</v>
+</row>
+
 run killerpeak.py for file
 
-./killerpeak.py 7890.rrd 1000000 1000000 1000000 1000
+./killerpeak.py <file.rrd> ds1_limit ds2_limit ds3_limit ds4_limit ds5_limit ds6_limit
+./killerpeak.py file.rrd 0 0 0 1000000 10000000000 1000000
 
-run killpeak.sh for folder
+run killpeak.sh for folder:
 
-./killpeak.sh /var/rrdfiles/ 1000000 1000000 1000000 1000
+./killpeak.sh /var/rrdfiles/ 0 0 0 1000000 10000000000 1000000
 
