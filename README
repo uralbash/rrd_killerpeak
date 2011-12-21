@@ -3,12 +3,9 @@ Kill peak from rrd file.
 Use:
 run killerpeak.py for file
 
-./killerpeak.py data/rrdfile/7890.rrd
-peak detect in data/rrdfile/7890.rrd
-peak detect in data/rrdfile/7890.rrd
-peak detect in data/rrdfile/7890.rrd
-peak detect in data/rrdfile/7890.rrd
+./killerpeak.py 7890.rrd 1000000 1000000 1000000 1000
 
 run killpeak.sh for folder
 
-./killpeak.sh data/rrdfile
+./killpeak.sh /var/rrdfiles/ 1000000 1000000 1000000 1000
+
