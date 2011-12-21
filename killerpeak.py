@@ -1,56 +1,69 @@
-#!/usr/bin/env python
+#import easy to use xml parser called minidom:
 import os
+import sys
 import shutil
-from xml.etree import ElementTree as ET
-from optparse import OptionParser
+from time import time
+from xml.dom import minidom
 
-__version__ = '0.1'
+def cutPeak(xml, *args):
 
-def get_configuration():
-    parser = OptionParser(version="%prog v" + __version__,
-                          usage="%prog <filename>")
-    parser.add_option("-v", "--verbose", action="count", default=0,
-                      help="produce more output")
-    parser.add_option('-b', '--border', action ='store', default=10**10,
-                 help='Min value of peak. Default 100000')
-    options, args = parser.parse_args()
+    doc = minidom.parse(xml)
+    database = doc.getElementsByTagName("row")
+    ds = doc.getElementsByTagName("ds")
 
-    if not os.path.isfile(args[0]):
-        parser.error("Not found file")
+    dsnamed = []
+    for data in ds:
+        if data.parentNode.nodeName == 'rrd':
+            dsnamed.append(data.getElementsByTagName("name")[0].firstChild.data)
 
-    return [ options ] + args
+    nodelen = len(database[0].getElementsByTagName('v'))
+    if nodelen != len(args):
+        print "You must have %d argument values." % nodelen
+        print "example: python killerpeak.py <rrd file> arg1 arg2 ..."
+        sys.exit(0)
 
-def main():
-    options, filename = get_configuration()
+    for i, arg in enumerate(args):
+        if int(arg):
+            for row in database:
+                value = row.getElementsByTagName('v')
+                data = float(value[i].firstChild.data)
+
+                if data >= float(arg):
+                    print "ds: %s | detect peak: %s"\
+                            % (dsnamed[i], data)
+                    value[i].firstChild.nodeValue = 'NaN'
+
+    return doc
+
+if __name__ == "__main__":
     try:
-        rrd_dump = os.system("rrdtool dump '%s' > 'old.xml'" % (filename))
-    except:
-        print "Error RRD file type"
-        raise
+        filename = sys.argv[1]
+    except IndexError:
+        print "PLease run command like:"
+        print "python killerpeak.py <rrd file> arg1 arg2 ..."
+        sys.exit(0)
 
-    if not os.path.exists('rrd_bak'):
-        os.makedirs('rrd_bak')
-    shutil.copy2(filename, 'rrd_bak')
+    # create rrd dump
+    olddoc = "old.xml"
+    rrd_dump = os.system("rrdtool dump '%s' > '%s'" % (filename, olddoc))
 
-    tree = ET.parse('old.xml')
+    # cut peak
+    newdoc = cutPeak(olddoc, *sys.argv[2:])
+    f = open('new.xml', 'w')
+    newdoc.writexml(f)
+    f.close()
 
-    def iterparent(tree):
-        for parent in tree.getiterator():
-            for child in parent:
-                yield parent, child
+    # backup rrd
+    bakdir = 'rrd_bak'
+    if not os.path.exists(bakdir):
+        os.makedirs(bakdir)
+    dir = os.path.join(bakdir, str(int(time())))
+    os.makedirs(dir)
+    shutil.copy2(filename, dir)
 
-    for parent, child in iterparent(tree):
-        if child.tag == 'v':
-            if float(child.text) > options.border:
-                print 'peak detect in %s' % filename
-                child.text = 'NaN'
-
-    tree.write('new.xml')
+    # restore rrd
     os.unlink(filename)
     os.system("rrdtool restore 'new.xml' '%s'" % filename)
     os.unlink('new.xml')
     os.unlink('old.xml')
 
-if __name__ == '__main__':
-    import sys
-    sys.exit(main())
